@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Ubuntu使用Docker安装Mysql | Gxyrious's Blog</title><meta name="keywords" content="技术,数据库,Docker"><meta name="author" content="Gxyrious,2466445001@qq.com"><meta name="copyright" content="Gxyrious"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一个自由的MySQL用来平时测试各种东西还是很方便的，好几次在parallels desktop上的Ubuntu装都失败了，这次用别的虚拟机试了一下就成了，感觉很可能是虚拟机镜像的问题。  一个新的Ubuntu虚拟机，先安装docker，参考https:&#x2F;&#x2F;developer.aliyun.com&#x2F;article&#x2F;1323800，https:&#x2F;&#x2F;docs.docker.com&#x2F;engine&#x2F;ins">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ubuntu使用Docker安装Mysql">
+<meta property="og:url" content="http://gxyrious.github.io/2022/12/01/installation-of-mysql-in-ubuntu-with-docker/index.html">
+<meta property="og:site_name" content="Gxyrious&#39;s Blog">
+<meta property="og:description" content="一个自由的MySQL用来平时测试各种东西还是很方便的，好几次在parallels desktop上的Ubuntu装都失败了，这次用别的虚拟机试了一下就成了，感觉很可能是虚拟机镜像的问题。  一个新的Ubuntu虚拟机，先安装docker，参考https:&#x2F;&#x2F;developer.aliyun.com&#x2F;article&#x2F;1323800，https:&#x2F;&#x2F;docs.docker.com&#x2F;engine&#x2F;ins">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-m9y9j1_1920x1080.png">
+<meta property="article:published_time" content="2022-12-01T14:02:40.000Z">
+<meta property="article:modified_time" content="2025-01-15T02:01:59.000Z">
+<meta property="article:author" content="Gxyrious">
+<meta property="article:tag" content="技术">
+<meta property="article:tag" content="数据库">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-m9y9j1_1920x1080.png"><link rel="shortcut icon" href="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/b_177f95c202476c8fb7b2efb9f91c44ed.jpg"><link rel="canonical" href="http://gxyrious.github.io/2022/12/01/installation-of-mysql-in-ubuntu-with-docker/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Ubuntu使用Docker安装Mysql',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2025-01-15 10:01:59'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/b_177f95c202476c8fb7b2efb9f91c44ed.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-m9y9j1_1920x1080.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Gxyrious's Blog</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Ubuntu使用Docker安装Mysql</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-01T14:02:40.000Z" title="发表于 2022-12-01 22:02:40">2022-12-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-15T02:01:59.000Z" title="更新于 2025-01-15 10:01:59">2025-01-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%98%B2%E5%BF%98/">防忘</a></span></div><div class="meta-secondline"></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>一个自由的MySQL用来平时测试各种东西还是很方便的，好几次在parallels desktop上的Ubuntu装都失败了，这次用别的虚拟机试了一下就成了，感觉很可能是虚拟机镜像的问题。</p>
+<ol>
+<li>一个新的Ubuntu虚拟机，先安装docker，参考<a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1323800%EF%BC%8Chttps://docs.docker.com/engine/install/ubuntu/#install-using-the-repository">https://developer.aliyun.com/article/1323800，https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository</a></li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># apt预备</span></span><br><span class="line">sudo apt update</span><br><span class="line">sudo apt upgrade</span><br><span class="line"><span class="comment"># 卸载旧的</span></span><br><span class="line">sudo apt-get remove docker docker-engine docker.io containerd runc</span><br><span class="line"><span class="comment"># 证书</span></span><br><span class="line">sudo apt-get install ca-certificates curl gnupg lsb-release</span><br><span class="line">curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -</span><br><span class="line"><span class="comment"># 换源</span></span><br><span class="line">sudo add-apt-repository <span class="string">&quot;deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu <span class="subst">$(lsb_release -cs)</span> stable&quot;</span></span><br><span class="line"><span class="comment"># 装docker</span></span><br><span class="line">sudo apt-get install docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="comment"># 启动</span></span><br><span class="line">systemctl start docker</span><br><span class="line"><span class="comment"># 验证安装</span></span><br><span class="line">sudo docker</span><br><span class="line">sudo docker ps</span><br><span class="line">sudo docker run hello-world</span><br><span class="line"><span class="comment">## 添加docker组，貌似直接跑这个命令就行了</span></span><br><span class="line">less /etc/group <span class="comment"># 先查看当前组</span></span><br><span class="line">sudo usermod -aG docker <span class="variable">$USER</span> &amp;&amp; newgrp docker <span class="comment"># 如果没有docker组的话会创建(?)</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>拉取mysql镜像，直接搞latest（2024-09-23）</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 直接拉取</span></span><br><span class="line">sudo docker pull mysql</span><br><span class="line">sudo docker images</span><br><span class="line"><span class="comment"># 拉取不下来？换源！</span></span><br><span class="line"><span class="built_in">cd</span> /etc/docker/</span><br><span class="line"><span class="built_in">ls</span> <span class="comment"># 发现是空的</span></span><br><span class="line">sudo vi daemon.json <span class="comment"># 添加json内容</span></span><br><span class="line">sudo systemctl restart docker <span class="comment"># 重启后再pull</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>打开防火墙3306，参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_38611617/article/details/115936149">https://blog.csdn.net/weixin_38611617/article/details/115936149</a></li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install firewalld</span><br><span class="line">sudo firewall-cmd --query-port=3306/tcp <span class="comment"># 看3306是否能通过防火墙</span></span><br><span class="line">sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent <span class="comment"># 开放3306端口</span></span><br><span class="line">sudo firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>跑一下容器试试，按理说此时应该就能连上了，用户名root密码123456，参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_47937828/article/details/141112933">https://blog.csdn.net/weixin_47937828/article/details/141112933</a></li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 试运行</span></span><br><span class="line">sudo docker run --name sql_docker -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 mysql</span><br><span class="line"><span class="comment"># 真运行</span></span><br><span class="line">docker run \</span><br><span class="line">--name sql_docker \</span><br><span class="line">-d \</span><br><span class="line">-p 3306:3306 \</span><br><span class="line">--restart unless-stopped \</span><br><span class="line">-v ~/Documents/Docker/Mysql/log:/var/log/mysql \</span><br><span class="line">-v ~/Documents/Docker/Mysql/data:/var/lib/mysql \</span><br><span class="line">-v ~/Documents/Docker/Mysql/conf:/etc/mysql/conf.d/ \</span><br><span class="line">-v ~/Documents/Docker/Mysql/mysql-files:/var/lib/mysql-files \</span><br><span class="line">-e MYSQL_ROOT_PASSWORD=YOUR_PASSWORD \</span><br><span class="line">mysql</span><br><span class="line"><span class="comment"># 进容器看看</span></span><br><span class="line">sudo docker <span class="built_in">exec</span> -it sql_docker /bin/bash</span><br><span class="line">bash-5.1$ mysql -uroot -p</span><br><span class="line"><span class="comment"># 创建用户</span></span><br><span class="line">create user <span class="string">&#x27;yourusername&#x27;</span>@<span class="string">&#x27;%&#x27;</span> identified by <span class="string">&#x27;YOURPASSWORD&#x27;</span>;</span><br><span class="line">flush privileges;</span><br><span class="line"><span class="comment"># 赋予权限</span></span><br><span class="line">grant all privileges on *.* to yourusername@<span class="string">&#x27;%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/install-mysql-using-docker-in-virtual-ubuntu/image-20240923221650454.png"></p>
+<ol start="5">
+<li>此时应能用datagrip访问</li>
+</ol>
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/hadoop-configuration-with-docker-simulating-distributed-nodes/image-20241014161842041.png" alt="datagrip访问"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://gxyrious.github.io">Gxyrious</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://gxyrious.github.io/2022/12/01/installation-of-mysql-in-ubuntu-with-docker/">http://gxyrious.github.io/2022/12/01/installation-of-mysql-in-ubuntu-with-docker/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://gxyrious.github.io" target="_blank">Gxyrious's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%8A%80%E6%9C%AF/">技术</a><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><a class="post-meta__tags" href="/tags/Docker/">Docker</a></div><div class="post_share"><div class="social-share" data-image="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-m9y9j1_1920x1080.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/15/frontend-testing-framework-exploration/"><img class="prev-cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-6d6mk7_1920x1080.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">前端测试框架浅试</div></div></a></div><div class="next-post pull-right"><a href="/2022/11/26/data-warehouse-backend-deployment/"><img class="next-cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-4yqkxn_1920x1080.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">数据仓库数据库部署</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/10/13/hadoop-configuration-with-docker-simulating-distributed-nodes/" title="Docker模拟分布式结点配置Hadoop"><img class="cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-4lzz6p_1920x1080.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-13</div><div class="title">Docker模拟分布式结点配置Hadoop</div></div></a></div><div><a href="/2022/10/25/Amazon-movie-data-processing/" title="Amazon电影数据处理"><img class="cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-4yqkxn_1920x1080.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-25</div><div class="title">Amazon电影数据处理</div></div></a></div><div><a href="/2022/08/26/usage-of-apple-object-capture/" title="苹果Object-Capture使用"><img class="cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-4d6mlg_1920x1080.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-26</div><div class="title">苹果Object-Capture使用</div></div></a></div><div><a href="/2022/07/25/database-project-reflection/" title="数据库课设"><img class="cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-nz8x1v_1920x1080.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-25</div><div class="title">数据库课设</div></div></a></div><div><a href="/2024/08/26/macos-external-hard-drive-install-docker/" title="MacOS在外接硬盘中安装docker"><img class="cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-rdwjj7_1920x1080.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-26</div><div class="title">MacOS在外接硬盘中安装docker</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/b_177f95c202476c8fb7b2efb9f91c44ed.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Gxyrious</div><div class="author-info__description">你看 月亮正对着你笑</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Gxyrious"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Gxyrious" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:chang.liu.me@outlook.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">日常瞎写，自我记录，不定更新</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/21/algorithm-valued-problem/" title="算法题记录"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-exql8w_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="算法题记录"/></a><div class="content"><a class="title" href="/2026/01/21/algorithm-valued-problem/" title="算法题记录">算法题记录</a><time datetime="2026-01-21T13:35:00.000Z" title="发表于 2026-01-21 21:35:00">2026-01-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/21/algorithm-to-enhance-dp/" title="动态规划题型整理"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-6d6mk7_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="动态规划题型整理"/></a><div class="content"><a class="title" href="/2026/01/21/algorithm-to-enhance-dp/" title="动态规划题型整理">动态规划题型整理</a><time datetime="2026-01-21T13:31:00.000Z" title="发表于 2026-01-21 21:31:00">2026-01-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/21/algorithm-to-enhance/" title="算法题小整理"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-e7ek7k_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="算法题小整理"/></a><div class="content"><a class="title" href="/2026/01/21/algorithm-to-enhance/" title="算法题小整理">算法题小整理</a><time datetime="2026-01-21T04:12:00.000Z" title="发表于 2026-01-21 12:12:00">2026-01-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/18/leetcode-weekly-contest/" title="力扣周赛记录"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-28j5r6_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="力扣周赛记录"/></a><div class="content"><a class="title" href="/2026/01/18/leetcode-weekly-contest/" title="力扣周赛记录">力扣周赛记录</a><time datetime="2026-01-17T16:00:00.000Z" title="发表于 2026-01-18 00:00:00">2026-01-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/14/java-garbage-collection/" title="Java垃圾回收"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-28j5r6_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java垃圾回收"/></a><div class="content"><a class="title" href="/2025/07/14/java-garbage-collection/" title="Java垃圾回收">Java垃圾回收</a><time datetime="2025-07-13T16:22:43.000Z" title="发表于 2025-07-14 00:22:43">2025-07-14</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-m9y9j1_1920x1080.png')"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By Gxyrious</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">简</button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script></div></body></html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>MySQL学习笔记 | Gxyrious's Blog</title><meta name="keywords" content="MySQL"><meta name="author" content="Gxyrious,2466445001@qq.com"><meta name="copyright" content="Gxyrious"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文是在阅读JavaGuide关于MySQL相关内容时的个人整理； 请移步：https:&#x2F;&#x2F;javaguide.cn  三大日志重做日志(redo-log) （用处） InnoDB 存储引擎独有，MySQL崩溃时用来恢复数据：重新执行 redo-log 中尚未持久化到数据文件的修改操作 （前置知识，脏页刷盘）MySQL的查询会把数据页读到内存的缓冲池Buffer Pool中，更新数据会直接在Bu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL学习笔记">
+<meta property="og:url" content="http://gxyrious.github.io/2025/01/15/learn-database-MySQL/index.html">
+<meta property="og:site_name" content="Gxyrious&#39;s Blog">
+<meta property="og:description" content="本文是在阅读JavaGuide关于MySQL相关内容时的个人整理； 请移步：https:&#x2F;&#x2F;javaguide.cn  三大日志重做日志(redo-log) （用处） InnoDB 存储引擎独有，MySQL崩溃时用来恢复数据：重新执行 redo-log 中尚未持久化到数据文件的修改操作 （前置知识，脏页刷盘）MySQL的查询会把数据页读到内存的缓冲池Buffer Pool中，更新数据会直接在Bu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-6d6mk7_1920x1080.png">
+<meta property="article:published_time" content="2025-01-15T04:22:26.000Z">
+<meta property="article:modified_time" content="2026-01-27T14:37:29.826Z">
+<meta property="article:author" content="Gxyrious">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-6d6mk7_1920x1080.png"><link rel="shortcut icon" href="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/b_177f95c202476c8fb7b2efb9f91c44ed.jpg"><link rel="canonical" href="http://gxyrious.github.io/2025/01/15/learn-database-MySQL/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL学习笔记',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-01-27 22:37:29'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/b_177f95c202476c8fb7b2efb9f91c44ed.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-6d6mk7_1920x1080.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Gxyrious's Blog</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL学习笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-15T04:22:26.000Z" title="发表于 2025-01-15 12:22:26">2025-01-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-27T14:37:29.826Z" title="更新于 2026-01-27 22:37:29">2026-01-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AB%E8%82%A1/">八股</a></span></div><div class="meta-secondline"></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>本文是在阅读JavaGuide关于MySQL相关内容时的个人整理；</p>
+<p>请移步：<a target="_blank" rel="noopener" href="https://javaguide.cn/">https://javaguide.cn</a></p>
+</blockquote>
+<h2 id="三大日志"><a href="#三大日志" class="headerlink" title="三大日志"></a>三大日志</h2><h3 id="重做日志-redo-log"><a href="#重做日志-redo-log" class="headerlink" title="重做日志(redo-log)"></a>重做日志(redo-log)</h3><ol>
+<li>（用处） InnoDB 存储引擎独有，MySQL崩溃时用来恢复数据：重新执行 redo-log 中尚未持久化到数据文件的修改操作</li>
+<li>（前置知识，脏页刷盘）MySQL的查询会把<strong>数据页</strong>读到内存的<strong>缓冲池Buffer Pool</strong>中，更新数据会直接在Buffer Pool操作（脏页，内存修改未持久化）；脏页的刷盘会根据redo-log大小、脏页比例、系统负载等情况智能调整</li>
+<li>（如何做的，为何这样）把“在某个数据页上做了什么操作”记录到重做日志缓存redo-log buffer中，再刷盘；这比直接脏页的刷盘速度快多了，因为redo-log是顺序写入，脏页是随机写入；注意磁盘中的redo-log不一定会记录完整，此时会回滚而不是重做；</li>
+<li>（事务提交后才会用到redo-log）事务执行过程的 redo-log 会写入 redo-log buffer 中，因为可能会被<strong>后台线程</strong>刷盘，所以没有提交事务的 redo-log 记录也可能被写入磁盘，不过没事，事务没提交就会回滚，用不到redo-log；而提交事务后，一般都会强制将redo-log写入磁盘，这是通过设置<code>innodb_flush_log_at_trx_commit=1</code>来完成的</li>
+<li>（存储形式，循环机制）硬盘上存储的 redo-log 是以一个<strong>日志文件组</strong>的形式出现的，每个的 redo-log日志文件大小都是一样的，会进行循环写入；Innodb使用一种checkpoint的机制，如果write pos追上了checkpoint，MySQL会停止处理新的更新操作，强制将脏页（就是Buffer Pool中的数据页）刷回磁盘，推进checkpoint</li>
+</ol>
+<p>InnoDB修改数据是直接在内存中的Buffer Pool进行的，可能存在“内存中修改了数据（脏页），还没来得及刷入磁盘，数据库就宕机了”，这时候重启就会根据下面的两阶段提交来判断需要<strong>回滚</strong>还是<strong>重做</strong>。</p>
+<h3 id="二进制日志-bin-log"><a href="#二进制日志-bin-log" class="headerlink" title="二进制日志(bin-log)"></a>二进制日志(bin-log)</h3><ol>
+<li>（做啥的）逻辑日志，<strong>顺序记录</strong>所有涉及更新数据的逻辑操作；<strong>主从|主备</strong>依靠它同步；</li>
+<li>（记录格式）statement记录SQL原文；row包含操作的数据，例如<code>now()</code>函数的具体时间，是解析后的SQL语句；mixed会判断是否引起不一致，再选择；</li>
+<li>（写入机制）先写到bin-log cache，事务提交时再一起写到binlog中，每个事务(线程)的bin-log cache是独立的；</li>
+</ol>
+<h4 id="两阶段提交"><a href="#两阶段提交" class="headerlink" title="两阶段提交"></a>两阶段提交</h4><ol>
+<li><p>（问题所在）bin-log和redo-log的逻辑可能不一样，即事务中写了redo-log，但binlog最终没写入；</p>
+</li>
+<li><p>（解决方式）把redo log的写入拆分为prepare和commit两个步骤，在提交事务时先写入binlog，再设置redo-log的commit，bin-log的落盘是事务提交的生效点，其实redo-log的commit没有那么重要<br>在重启时需要满足既不是commit阶段又不存在对应的binlog，才回滚事务，回滚事务用的是undo-log而非redo-log；否则说明该事务已经完成，前滚事务。</p>
+</li>
+</ol>
+<blockquote>
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/learn-database-mysql/06-20220305234907651.png" alt="两阶段提交"></p>
+<p>图源：JavaGuide</p>
+</blockquote>
+<h3 id="回滚日志-undo-log"><a href="#回滚日志-undo-log" class="headerlink" title="回滚日志(undo-log)"></a>回滚日志(undo-log)</h3><ol>
+<li>回滚日志，用来对事务进行回滚，保证事务的原子性；</li>
+<li>也需要存储到redo log中，但是事务提交后是可以删除的；删除的时机和undo log的种类有关，和MVCC有关，详见MVCC</li>
+</ol>
+<blockquote>
+<p>事务的ACID：</p>
+<ol>
+<li>原子性(Atomic)：修改数据要么全部成功，要么全部失败（undo-log保证）</li>
+<li>一致性(Consistent)：数据都保持一致状态？</li>
+<li>隔离性(Isolation)：并发事务之间的隔离</li>
+<li>持久性(Duration)：事务完成之后不会被回滚（redo-log保证）</li>
+</ol>
+</blockquote>
+<h2 id="事务隔离级别"><a href="#事务隔离级别" class="headerlink" title="事务隔离级别"></a>事务隔离级别</h2><h3 id="4种级别"><a href="#4种级别" class="headerlink" title="4种级别"></a>4种级别</h3><ol>
+<li><strong>READ-UNCOMMITTED(读取未提交)</strong> ：最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读。</li>
+<li><strong>READ-COMMITTED(读取已提交)</strong> ：允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生。</li>
+<li><strong>REPEATABLE-READ(可重复读)</strong> ：对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。</li>
+<li><strong>SERIALIZABLE(可串行化)</strong> ：最高的隔离级别，完全服从 ACID 的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。</li>
+</ol>
+<p>RC和RR两种级别都是用MVCC机制，但是他们生成Read View的时机不同（Read View仅能看到已提交事务的版本），RC会在每次select查询前都生成一个Read View，而RR只在事务开始后第一次select数据前生成Read View，这样RR就实现了可重复读。</p>
+<h3 id="导致的问题"><a href="#导致的问题" class="headerlink" title="导致的问题"></a>导致的问题</h3><ol>
+<li>脏读(读未提交) &#x3D;&gt; 读已提交</li>
+</ol>
+<blockquote>
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/learn-database-mysql/2019-31-1%E8%84%8F%E8%AF%BB(%E8%AF%BB%E6%9C%AA%E6%8F%90%E4%BA%A4)%E5%AE%9E%E4%BE%8B.jpg" alt="脏读"></p>
+<p>图源：JavaGuide</p>
+</blockquote>
+<ol start="2">
+<li>不可重复读(一个事务中读一个数据多次，结果不一样) &#x3D;&gt; 可重复读</li>
+</ol>
+<blockquote>
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/learn-database-mysql/2019-33-2%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB.jpg" alt="不可重复读"></p>
+<p>图源：JavaGuide</p>
+</blockquote>
+<ol start="3">
+<li>幻读 &#x3D;&gt; 可重复读</li>
+</ol>
+<p>例子：SQL 脚本 1 在第一次查询工资为 500 的记录时只有一条，SQL 脚本 2 插入了一条工资为 500 的记录，提交之后；SQL 脚本 1 在同一个事务中再次使用当前读查询发现出现了两条工资为 500 的记录这种就是幻读。</p>
+<blockquote>
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/learn-database-mysql/phantom_read-20241227111548829.png" alt="幻读"></p>
+<p>图源：JavaGuide</p>
+</blockquote>
+<blockquote>
+<p>注：图中的<code>select ... for update</code>的<code>for update</code>会将select得到的行（如果没有主键，则全表上锁）上悲观锁，用于select之后update。</p>
+</blockquote>
+<p>解决方案：一个事务在操作某张表数据的时候，另外一个事务不允许新增或者删除这张表中的数据。</p>
+<ol>
+<li>将事务隔离级别调整为 <code>SERIALIZABLE</code> ；</li>
+<li>在可重复读的事务级别下，给事务操作的这张表添加表锁；</li>
+<li>在可重复读的事务级别下，给事务操作的这张表添加 <code>Next-key Lock(Record Lock+Gap Lock)</code>；⚠️待研究</li>
+</ol>
+<h2 id="多版本并发控制-MVCC"><a href="#多版本并发控制-MVCC" class="headerlink" title="多版本并发控制(MVCC)"></a>多版本并发控制(MVCC)</h2><p>MVCC(Multi-Version Concurrency Control)即多版本并发控制，通过维护在每个数据行上的多个版本来实现；这些版本会定期被回收</p>
+<p>总述（基于什么逻辑实现的）：</p>
+<ol>
+<li>修改：即写操作，会生成一个新的数据版本，带有当前事务的版本号，从而使得其他事务能够读取相应版本的数据</li>
+<li>读取：使用快照读取，选择符合其事务开始时间的数据版本进行读取</li>
+<li>事务提交后，其版本会成为数据库的最新版本，并对其他事务可见</li>
+</ol>
+<h3 id="快照读和当前读"><a href="#快照读和当前读" class="headerlink" title="快照读和当前读"></a>快照读和当前读</h3><p>mysql的RR隔离级别其实一定程度上可以解决幻读问题，这就是用MVCC保证的，关键在于快照读和当前读这两个操作。</p>
+<ol>
+<li><p>快照读(一致性非锁定读)：读取历史快照的数据，属于MVCC的范畴；锁定读不属于MVCC范畴</p>
+</li>
+<li><p>锁定读(当前读)：执行<code>select ... lock in share mode</code>、<code>select ... for update</code>、<code>insert, update, delete</code>这些语句的时候，就不能再用快照了，而是会读取最新版本并且对读取到的记录加锁，S锁或X锁。</p>
+</li>
+</ol>
+<h3 id="共享锁-S锁-和排它锁-X锁"><a href="#共享锁-S锁-和排它锁-X锁" class="headerlink" title="共享锁(S锁)和排它锁(X锁)"></a>共享锁(S锁)和排它锁(X锁)</h3><ol>
+<li><code>select ... lock in share mode</code>会对数据行添加**共享锁(S锁)<strong>，有S锁再添加</strong>排他锁(X锁)**会阻塞，因为有人在读不准改；</li>
+<li>如果是<code>insert, update, delete</code>，会添加X锁，此时其他任何锁都不能加，因为有人在改</li>
+</ol>
+<p>但是即使上S锁或X锁，快照读还是能读的，因为读的是第一次查询时生成的快照</p>
+<h2 id="InnoDB对MVCC的实现"><a href="#InnoDB对MVCC的实现" class="headerlink" title="InnoDB对MVCC的实现"></a>InnoDB对MVCC的实现</h2><blockquote>
+<p>前面的MVCC只是一种理论，具体的实现方式要看不同的引擎，比如说快照读，不可能真的存一个快照在本地，太浪费空间了。</p>
+</blockquote>
+<p>当在一个事务中读取某一行时，会根据这个事务的Read View及和该行的隐藏字段<code>DB_TRX_ID</code>(最后一次插入或更新该行的事务id)来判断，该行的最新版本是否对事务可见；如果不可见，则通过行的另一个隐藏字段<code>DB_ROLL_PTR</code>回滚到上一个版本，直到某个版本对该事务可见，或回滚指针不存在，即该版本首次被insert。</p>
+<h3 id="数据行隐藏字段"><a href="#数据行隐藏字段" class="headerlink" title="数据行隐藏字段"></a>数据行隐藏字段</h3><ol>
+<li><p>(重要)<code>DB_TRX_ID</code>：表示最后一次插入或更新该行的事务 id，用来判断该数据行对某个快照(Read View)的可见性</p>
+</li>
+<li><p>(重要)<code>DB_ROLL_PTR</code> ：回滚指针，指向该行的<code>undo log</code>，用来回滚到数据行的上个版本</p>
+</li>
+<li><p><code>DB_ROW_ID</code>：如果没有设置主键且该表没有唯一非空索引时，<code>InnoDB</code> 会使用该<code>DB_ROW_ID</code>来生成聚簇索引</p>
+</li>
+</ol>
+<blockquote>
+<p>undo-log有两个作用：</p>
+<ol>
+<li>事务回滚时恢复数据</li>
+<li>MVCC当读取某个行记录，发现该记录的最新版本对当前事务并不可见，则需要通过undo log，在内存中算出来之前的版本数据，从而实现<strong>非锁定读</strong></li>
+</ol>
+<p>有两种undo-log：</p>
+<ol>
+<li><p><code>insert undo log</code>：因为 <code>insert</code> 操作的记录只对事务本身可见，对其他事务不可见，故该 <code>undo log</code> 可以在事务提交后直接删除，所以如果某数据行的<code>DB_TRX_ID</code>表明该数据行不可见，它的<code>DB_ROLL_PTR</code>又是空的话，这就说明他是insert的产生的</p>
+</li>
+<li><p><code>update undo log</code>：<code>update</code> 或 <code>delete</code> 操作中产生的 <code>undo log</code>。该 <code>undo log</code>可能需要提供 <code>MVCC</code> 机制，因此不能在事务提交时就进行删除。提交时放入 <code>undo log</code> 链表，等待 <code>purge线程</code> 进行最后的删除。</p>
+<p>不同事务或者相同事务的对同一记录行的修改，会使该记录行的 <code>undo log</code> 成为一条链表，链首就是最新的记录，链尾就是最早的旧记录。</p>
+</li>
+</ol>
+</blockquote>
+<h3 id="数据行对Read-View的可见性"><a href="#数据行对Read-View的可见性" class="headerlink" title="数据行对Read View的可见性"></a>数据行对Read View的可见性</h3><p>Read View创建时会有：</p>
+<ol>
+<li>当前活跃事务列表<code>m_ids</code>：不一定是连续的，因为后创建的可能先结束了，在这个列表中的必然是不可见的，使用二分搜索；</li>
+<li><code>m_up_limit_id</code>：目前出现过的最大的事务 ID+1，比它大的必然不可见；</li>
+<li><code>m_low_limit_id</code>：活跃事务列表m_ids中最小的事务 ID，ID比它大的并不一定活跃，也可能完成了，但比他小的是必然完成，所以可见；</li>
+</ol>
+<p>判断某行数据版本<code>trx_id</code>是否对当前的Read View可见，依次校验下面规则，<a target="_blank" rel="noopener" href="https://github.com/mysql/mysql-server/blob/447eb26e094b444a88c532028647e48228c3c04f/storage/innobase/include/read0types.h#L163">源码在此</a>：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">bool</span> <span class="title">changes_visible</span><span class="params">(<span class="type">trx_id_t</span> id, ...)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 1. 如果记录的事务ID小于低水位（up_limit），说明早于ReadView创建，可见</span></span><br><span class="line">    <span class="keyword">if</span> (id &lt; m_up_limit_id) &#123; </span><br><span class="line">        <span class="keyword">return</span>(<span class="literal">true</span>); </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 2. 如果记录的事务ID等于当前事务自己，可见</span></span><br><span class="line">    <span class="keyword">if</span> (id == m_creator_trx_id) &#123;</span><br><span class="line">        <span class="keyword">return</span>(<span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 3. 如果记录的事务ID大于等于高水位（low_limit），说明是后来生成的，不可见</span></span><br><span class="line">    <span class="keyword">if</span> (id &gt;= m_low_limit_id) &#123; </span><br><span class="line">        <span class="keyword">return</span>(<span class="literal">false</span>); </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 4. 如果在活跃事务列表中（m_ids），说明ReadView创建时它还没提交，不可见</span></span><br><span class="line">    <span class="keyword">if</span> (m_ids.<span class="built_in">binary_search</span>(id)) &#123;</span><br><span class="line">        <span class="keyword">return</span>(<span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 5. 否则可见</span></span><br><span class="line">    <span class="keyword">return</span>(<span class="literal">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="数据表索引"><a href="#数据表索引" class="headerlink" title="数据表索引"></a>数据表索引</h2><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><h4 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h4><ol>
+<li><p>（怎么建和怎么发挥作用）key为建立索引的字段值，value为该行所在的地址（或index）；</p>
+</li>
+<li><p>（哈希冲突）拉链法和红黑树or B+Tree</p>
+</li>
+<li><p>（缺点）不支持顺序和范围查询，无序；例如找id小于500，需要对1和499都定位一次</p>
+</li>
+</ol>
+<h4 id="红黑树"><a href="#红黑树" class="headerlink" title="红黑树"></a>红黑树</h4><p>待研究</p>
+<h4 id="B树"><a href="#B树" class="headerlink" title="B树"></a>B树</h4><blockquote>
+<p>多叉平衡搜索树，参考<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1tJ4m1w7yR%EF%BC%8C%E4%B8%8B%E5%9B%BE%E4%BA%A6%E6%98%AF%E5%87%BA%E8%87%AA%E4%BA%8E%E6%AD%A4">https://www.bilibili.com/video/BV1tJ4m1w7yR，下图亦是出自于此</a></p>
+<p>比红黑树好——因为大量数据需要对磁盘进行IO，内存放不下</p>
+<p>而B+树每个节点存储的数据多，硬盘读取1次节点耗时是类似的，无论节点的元素有多少</p>
+<p>访问节点的操作在硬盘上进行，访问节点内的元素是在内存上进行的</p>
+</blockquote>
+<ol>
+<li>整体概述：m阶B树的结点，最多m个分支和m-1个元素，最少m&#x2F;2向上取整个分支，和m&#x2F;2向上取整个-1个元素</li>
+</ol>
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/learn-database-mysql/image-20241227164429874.png" alt="image-20241227164429874"></p>
+<ol start="2">
+<li>插入，只可能上溢出，溢出后需要分裂和调整</li>
+</ol>
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/learn-database-mysql/image-20241227164935458.png" alt="image-20241227164935458"></p>
+<ol start="3">
+<li>删除，只可能下溢出；删除非叶节点的情况，去删除其前驱或后继，转换为删除叶节点</li>
+</ol>
+<h4 id="B-树"><a href="#B-树" class="headerlink" title="B+树"></a>B+树</h4><ol>
+<li><p>分支数目&#x3D;节点的元素数，每个元素都会出现在叶节点，中间节点的元素是重复的</p>
+</li>
+<li><p>叶节点存储数据所在地址，可以针对一张表中多个字段建立B+索引</p>
+</li>
+<li><p>是一个多极索引结构，叶节点可理解为表格主键的索引，树中的第i层是对i+1层的索引</p>
+</li>
+</ol>
+<p><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/learn-database-mysql/image-20241227171213564.png" alt="image-20241227171213564"></p>
+<h3 id="索引介绍"><a href="#索引介绍" class="headerlink" title="索引介绍"></a>索引介绍</h3><ol>
+<li><p>主键索引</p>
+<p>每个表都会有主键并建立索引，会检查是否有唯一索引且不允许null的字段，拿来当作默认主键，否则会自动创建一个自增主键；</p>
+<p><code>InnoDB</code>默认使用B+树存储主键索引，这时候叶节点就会存储指向相应记录的指针；</p>
+<p><code>InnoDB</code>使用聚簇索引，<code>MyISAM</code>使用非聚簇索引。前者使得基于主键的查询效率非常高，因为表中数据的物理顺序和主键索引的顺序是一致的，但是更新的代价比较大；后者比前者多一步IO操作，并且可能会导致二次查询，但是更新代价小；</p>
+</li>
+<li><p>二级索引</p>
+<p>对应于主键索引，通过二级索引可以定位主键的位置；如果也用B+树，叶节点存储的是索引列的值和对应的主键值，二级索引需要找两次索引树</p>
+</li>
+</ol>
+<hr>
+<ol start="3">
+<li><p>覆盖索引：索引包含所需要查询字段的所有值。一般而言，非主键索引查询的时候需要先找到主键值，然后再定位完整的行数据，这叫回表；但是如果需要查询的字段正好是索引的字段，那么直接根据该索引，就可以查到数据了，而无需回表查询。即少一次查询索引树</p>
+</li>
+<li><p>联合索引：使用表中的多个字段创建索引，其实主要还得看最左的字段，即最左匹配原则。将区分度高的字段放在最左边，可以过滤更多数据。</p>
+<p>假设有一个联合索引<code>(column1, column2, column3)</code>，其从左到右的所有前缀为<code>(column1)</code>、<code>(column1, column2)</code>、<code>(column1, column2, column3)</code>（创建 1 个联合索引相当于创建了 3 个索引），包含这些列的所有查询都会走索引而不会全表扫描。只有联合索引的前缀会生效。</p>
+<blockquote>
+<p>[!NOTE]</p>
+<p>什么时候不走索引呢，即索引失效问题，对于联合索引，只要不包含最左列，就不会走索引，其余情况待深入研究</p>
+</blockquote>
+</li>
+</ol>
+<hr>
+<ol start="5">
+<li>前缀索引：只针对字符串类型，对前几个字符创建索引，建立起的索引更小。</li>
+<li>聚簇索引和非聚簇索引：聚簇索引中数据行和索引值是存放在一起的，例如经典例子B+树存主键索引，它会比非聚簇索引少一步根据叶节点的指针去找对应数据行的操作，因为聚簇索引直接把数据行存在叶子结点中；数据行&#x2F;叶结点是可以通过双向链表顺序访问的(不是连续内存)，这就让B+树非常适合范围查找；每张表只能构建一个聚簇索引，因为不同字段的排序一般不同</li>
+</ol>
+<h2 id="执行计划分析"><a href="#执行计划分析" class="headerlink" title="执行计划分析"></a>执行计划分析</h2><blockquote>
+<p>Explain关键字+查询语句</p>
+</blockquote>
+<p>比较重要的字段</p>
+<h4 id="type"><a href="#type" class="headerlink" title="type"></a>type</h4><p>下面是type字段可能的值，效率依次变差</p>
+<ol>
+<li><strong>system</strong>：如果表使用的引擎对于表行数统计是精确的（如：MyISAM），且表中只有一行记录的情况下，访问方法是 system ，是 const 的一种特例。</li>
+<li><strong>const</strong>：表中最多只有一行匹配的记录，一次查询就可以找到，常用于使用主键或唯一索引的所有字段作为查询条件。</li>
+<li><strong>eq_ref</strong>：当连表查询时，前一张表的行在当前这张表中只有一行与之对应。是除了 system 与 const 之外最好的 join 方式，常用于使用主键或唯一索引的所有字段作为连表条件。</li>
+<li><strong>ref</strong>：使用普通索引作为查询条件，查询结果可能找到多个符合条件的行。</li>
+<li><strong>index_merge</strong>：当查询条件使用了多个索引时，表示开启了 Index Merge 优化，此时执行计划中的 key 列列出了使用到的索引。</li>
+<li><strong>range</strong>：对索引列进行范围查询，执行计划中的 key 列表示哪个索引被使用了。</li>
+<li><strong>index</strong>：查询遍历了整棵索引树，与 ALL 类似，只不过扫描的是索引，而索引一般在内存中，速度更快。</li>
+<li><strong>ALL</strong>：全表扫描。</li>
+</ol>
+<h4 id="possible-keys-amp-key"><a href="#possible-keys-amp-key" class="headerlink" title="possible_keys &amp; key"></a>possible_keys &amp; key</h4><p>possible_keys是可能用到的索引，key是实际用到的索引。InnoDB会选择更优秀的索引来查找数据。通过对比这两个字段，可以分析查询引擎的推断。</p>
+<h4 id="Extra"><a href="#Extra" class="headerlink" title="Extra"></a>Extra</h4><p>extra包含额外的查询信息，例如：</p>
+<ol>
+<li><p><strong>Using filesort</strong>：在排序时使用了外部的索引排序，没有用到表内索引进行排序。</p>
+</li>
+<li><p><strong>Using temporary</strong>：MySQL 需要创建临时表来存储查询的结果，常见于 ORDER BY 和 GROUP BY。</p>
+</li>
+<li><p><strong>Using index</strong>：表明查询使用了覆盖索引，不用回表，查询效率非常高。</p>
+</li>
+<li><p><strong>Using index condition</strong>：表示查询优化器选择使用了索引条件下推这个特性。</p>
+</li>
+<li><p><strong>Using where</strong>：表明查询使用了 WHERE 子句进行条件过滤。一般在没有使用到索引的时候会出现。</p>
+</li>
+<li><p>**Using join buffer (Block Nested Loop)**：连表查询的方式，表示当被驱动表的没有使用索引的时候，MySQL 会先将驱动表读出来放到 join buffer 中，再遍历被驱动表与驱动表进行查询。</p>
+</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://gxyrious.github.io">Gxyrious</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://gxyrious.github.io/2025/01/15/learn-database-MySQL/">http://gxyrious.github.io/2025/01/15/learn-database-MySQL/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://gxyrious.github.io" target="_blank">Gxyrious's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-6d6mk7_1920x1080.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2025/01/15/learn-computer-network/"><img class="prev-cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-rdwjj7_1920x1080.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">计算机网络学习笔记</div></div></a></div><div class="next-post pull-right"><a href="/2025/01/15/learn-redis/"><img class="next-cover" src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-d6zykj_1920x1080.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Redis学习笔记</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/blog/b_177f95c202476c8fb7b2efb9f91c44ed.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Gxyrious</div><div class="author-info__description">你看 月亮正对着你笑</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Gxyrious"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Gxyrious" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:chang.liu.me@outlook.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">日常瞎写，自我记录，不定更新</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E5%A4%A7%E6%97%A5%E5%BF%97"><span class="toc-number">1.</span> <span class="toc-text">三大日志</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E5%81%9A%E6%97%A5%E5%BF%97-redo-log"><span class="toc-number">1.1.</span> <span class="toc-text">重做日志(redo-log)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%97%A5%E5%BF%97-bin-log"><span class="toc-number">1.2.</span> <span class="toc-text">二进制日志(bin-log)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%A4%E9%98%B6%E6%AE%B5%E6%8F%90%E4%BA%A4"><span class="toc-number">1.2.1.</span> <span class="toc-text">两阶段提交</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9E%E6%BB%9A%E6%97%A5%E5%BF%97-undo-log"><span class="toc-number">1.3.</span> <span class="toc-text">回滚日志(undo-log)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="toc-number">2.</span> <span class="toc-text">事务隔离级别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E7%A7%8D%E7%BA%A7%E5%88%AB"><span class="toc-number">2.1.</span> <span class="toc-text">4种级别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BC%E8%87%B4%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">2.2.</span> <span class="toc-text">导致的问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E7%89%88%E6%9C%AC%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6-MVCC"><span class="toc-number">3.</span> <span class="toc-text">多版本并发控制(MVCC)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%AB%E7%85%A7%E8%AF%BB%E5%92%8C%E5%BD%93%E5%89%8D%E8%AF%BB"><span class="toc-number">3.1.</span> <span class="toc-text">快照读和当前读</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B1%E4%BA%AB%E9%94%81-S%E9%94%81-%E5%92%8C%E6%8E%92%E5%AE%83%E9%94%81-X%E9%94%81"><span class="toc-number">3.2.</span> <span class="toc-text">共享锁(S锁)和排它锁(X锁)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#InnoDB%E5%AF%B9MVCC%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">InnoDB对MVCC的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%A1%8C%E9%9A%90%E8%97%8F%E5%AD%97%E6%AE%B5"><span class="toc-number">4.1.</span> <span class="toc-text">数据行隐藏字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%A1%8C%E5%AF%B9Read-View%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="toc-number">4.2.</span> <span class="toc-text">数据行对Read View的可见性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%A1%A8%E7%B4%A2%E5%BC%95"><span class="toc-number">5.</span> <span class="toc-text">数据表索引</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">5.1.</span> <span class="toc-text">数据结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E8%A1%A8"><span class="toc-number">5.1.1.</span> <span class="toc-text">哈希表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BA%A2%E9%BB%91%E6%A0%91"><span class="toc-number">5.1.2.</span> <span class="toc-text">红黑树</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#B%E6%A0%91"><span class="toc-number">5.1.3.</span> <span class="toc-text">B树</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#B-%E6%A0%91"><span class="toc-number">5.1.4.</span> <span class="toc-text">B+树</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E4%BB%8B%E7%BB%8D"><span class="toc-number">5.2.</span> <span class="toc-text">索引介绍</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90"><span class="toc-number">6.</span> <span class="toc-text">执行计划分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#type"><span class="toc-number">6.0.1.</span> <span class="toc-text">type</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#possible-keys-amp-key"><span class="toc-number">6.0.2.</span> <span class="toc-text">possible_keys &amp; key</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Extra"><span class="toc-number">6.0.3.</span> <span class="toc-text">Extra</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/21/algorithm-valued-problem/" title="算法题记录"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-exql8w_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="算法题记录"/></a><div class="content"><a class="title" href="/2026/01/21/algorithm-valued-problem/" title="算法题记录">算法题记录</a><time datetime="2026-01-21T13:35:00.000Z" title="发表于 2026-01-21 21:35:00">2026-01-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/21/algorithm-to-enhance-dp/" title="动态规划题型整理"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-6d6mk7_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="动态规划题型整理"/></a><div class="content"><a class="title" href="/2026/01/21/algorithm-to-enhance-dp/" title="动态规划题型整理">动态规划题型整理</a><time datetime="2026-01-21T13:31:00.000Z" title="发表于 2026-01-21 21:31:00">2026-01-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/21/algorithm-to-enhance/" title="算法题小整理"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-e7ek7k_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="算法题小整理"/></a><div class="content"><a class="title" href="/2026/01/21/algorithm-to-enhance/" title="算法题小整理">算法题小整理</a><time datetime="2026-01-21T04:12:00.000Z" title="发表于 2026-01-21 12:12:00">2026-01-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/18/leetcode-weekly-contest/" title="力扣周赛记录"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-28j5r6_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="力扣周赛记录"/></a><div class="content"><a class="title" href="/2026/01/18/leetcode-weekly-contest/" title="力扣周赛记录">力扣周赛记录</a><time datetime="2026-01-17T16:00:00.000Z" title="发表于 2026-01-18 00:00:00">2026-01-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/14/java-garbage-collection/" title="Java垃圾回收"><img src="https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-28j5r6_1920x1080.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java垃圾回收"/></a><div class="content"><a class="title" href="/2025/07/14/java-garbage-collection/" title="Java垃圾回收">Java垃圾回收</a><time datetime="2025-07-13T16:22:43.000Z" title="发表于 2025-07-14 00:22:43">2025-07-14</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://gxyrious.oss-cn-hangzhou.aliyuncs.com/img/wallpapers/wallhaven-6d6mk7_1920x1080.png')"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By Gxyrious</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">简</button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script></div></body></html>
